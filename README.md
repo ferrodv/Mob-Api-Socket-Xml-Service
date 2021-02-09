@@ -32,6 +32,12 @@
 
 ```bash
 $ npm install
+
+(Opcional)
+$ npm install -g npm-install-peers (Si te lanza el warining)
+$ npm audit fix
+$ npm audit
+$ npm fund
 ```
 
 ## Running the app
