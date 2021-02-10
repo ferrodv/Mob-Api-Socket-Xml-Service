@@ -1,17 +1,60 @@
 import { Controller, Get, Put, Delete, Post, Param, Res, HttpStatus, Body } from '@nestjs/common';
 import { AppService } from './app.service';
+import { ObjetoDto } from './objetoDto';
+import { Objeto } from './objeto';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
-  async getInv(@Res() res) {
-    return res.status(HttpStatus.OK).json({data: "Todo OK"})
+  @Get("/consultar/data")
+  async getData(@Res() res) {
+    const data = this.appService.getData();
+    if (data != null)
+        return res.status(HttpStatus.OK).json({data: data})
+    else 
+        return res.status(HttpStatus.NOT_FOUND).json({message: "No existen objetos creados"})
 }
 
-  @Get("/Hello_word")
-  getHello(): string {
-    return this.appService.getHello();
+  @Get("/consultar/estructura")
+  async getStruct(@Res() res) {
+    const struct = this.appService.getData();
+    return res.status(HttpStatus.OK).json({data: struct})
   }
+
+  @Post("/crear")
+  async create(@Res() res, @Body() objetoDto : ObjetoDto) {
+    const obj = this.appService.create(objetoDto)
+    if (obj != null)
+        return res.status(HttpStatus.OK).json({message: "Registro exitoso", data: obj})
+    else 
+        return res.status(HttpStatus.NOT_FOUND).json({message: "Fallo de registro"})   
 }
+
+  @Delete("/eliminar/:nombre")
+  async delete(@Param('nombre') nombre : string, @Res() res) {
+    const obj = this.appService.delete(String(nombre))
+    if (obj != null)
+    return res.status(HttpStatus.OK).json({message: "data eliminada exitosamente", data: obj})
+else 
+    return res.status(HttpStatus.NOT_FOUND).json({message: "Registro no existente"})
+}
+
+  @Put("/accion/replicar")
+  async replicate(@Res() res, @Body() objetoDto : ObjetoDto) {
+    const status = this.appService.replicarObjetos(objetoDto)
+    if (status != null)
+        return res.status(HttpStatus.OK).json({message: "Registro exitoso", data: status})
+    else 
+        return res.status(HttpStatus.NOT_FOUND).json({message: "Fallo de registro"})   
+}
+
+  @Put("/accion/restaurar")
+  async restruct(@Res() res, @Body() objetoDto : ObjetoDto) {
+    const status = this.appService.restaurarObetos(objetoDto)
+    if (status != null)
+        return res.status(HttpStatus.OK).json({message: "Registro exitoso", data: status})
+    else 
+        return res.status(HttpStatus.NOT_FOUND).json({message: "Fallo de registro"})   
+  }
+} 
