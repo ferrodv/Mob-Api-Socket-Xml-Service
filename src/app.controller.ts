@@ -18,8 +18,8 @@ export class AppController {
 
   @Get("/consultar/estructura")
   async getStruct(@Res() res) {
-    const struct = this.appService.getData();
-    return res.status(HttpStatus.OK).json({data: struct})
+    const struct = this.appService.getStruct();
+    return res.status(HttpStatus.OK).json({struct})
   }
 
   @Post("/crear")
@@ -33,7 +33,7 @@ export class AppController {
 
   @Delete("/eliminar/:nombre")
   async delete(@Param('nombre') nombre : string, @Res() res) {
-    const obj = this.appService.delete(String(nombre))
+    const obj = this.appService.delete(String(nombre).toLowerCase())
     if (obj != null)
     return res.status(HttpStatus.OK).json({message: "data eliminada exitosamente", data: obj})
 else 

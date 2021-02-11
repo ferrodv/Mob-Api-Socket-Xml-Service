@@ -6,31 +6,32 @@ import { constants } from 'buffer';
 @Injectable()
 export class AppService {
   
-  repositorio: Objeto[]
+  repositorio : Objeto[] = [];
 
   getData(): Objeto[] {
     return this.repositorio;
   }
   
   getStruct(): string {
-    return '{ "nombre" :"nombre", "fecha" : "fecha", "accion" : "accion" }';
+    return  JSON.parse('{ "atributo_1" :"nombre", "atributo_2" : "fecha", "atributo_3" : "accion" }');
   }
 
   getObjetoIndex(nombre: String): Number {
-    //const index = this.repositorio.findIndex(objeto => objeto.nombre === nombre);
-    return 2;
+    const index = this.repositorio.findIndex(objeto => objeto.nombre === nombre);
+    return index;
   }
 
   create(objDto : ObjetoDto): Objeto {
-    const obj: Objeto = objDto.toObjeto();
-    this.repositorio.push(obj);
+    const obj: ObjetoDto = new ObjetoDto(objDto);
+    this.repositorio.push(obj.toObjeto());
     return obj
   }
 
   delete(nombre : String): Objeto {
     const index = this.getObjetoIndex(nombre);
     const obj:Objeto = this.repositorio[Number(index)];
-    this.repositorio.splice(Number(index))
+    if (index >= 0)
+      this.repositorio.splice(Number(index), 1)
     return obj
   }
 
