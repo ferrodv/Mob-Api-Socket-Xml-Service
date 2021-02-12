@@ -6,11 +6,11 @@ import { constants } from 'buffer';
 @Injectable()
 export class AppService {
   
-  repositorio : Objeto[] = [];
-  log = new Date();
+  repositorio : Objeto[] = []
 
   getTime(): string{
-    return (this.log.getFullYear() + "/" + this.log.getMonth() + "/" + this.log.getDate() + " " + this.log.getHours() + ":" + this.log.getMinutes() + ":" + this.log.getSeconds());
+    let log = new Date();
+    return (log.getFullYear() + "/" + log.getMonth() + "/" + log.getDate() + " " + log.getHours() + ":" + log.getMinutes() + ":" + log.getSeconds());
   }
 
   wellcome(): string[] {
