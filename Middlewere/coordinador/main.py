@@ -69,21 +69,39 @@ class Main:
 
 
     def listen_Api_Port(self):
+        commit = False
         self._socketT_Api.listen(1)
         while(True):
-            print("Esperando Request")
+            print("Esperando Request...")
             conexion, _ipLocal = self._socketT_Api.accept() # Aceptando conexion
             try:
                 print("Recibiendo Request de api")
                 while(True):
-                    self._apiCommand = conexion.recv(16)
-                    if(len(self._apiCommand != 0)):
-                        print("Mensaje recibido: {!r}".format(self._apiCommand))
-                    elif(len(self._apiCommand) == 0):
-                        print("Error, mensaje no recibido...")
-                        conexion.sendall("ERROR")
+                    self._apiCommand = conexion.recv(1024).decode('utf-8')
+                    if(len(self._apiCommand) != 0):
+                        print("Comando recibido: " + self._apiCommand)
+                        if (commit == False):
+                            if (self._apiCommand == "replicar_commit"):
+                                print("Respondiendo: commit")
+                                conexion.sendall("commit".encode())
+                                commit = True
+                            elif (self._apiCommand == "restaurar_commit"):
+                                print("Respondiendo: commit")
+                                conexion.sendall("commit".encode())
+                                commit = True
+                            elif (self._apiCommand == "replicar_abort"):
+                                print("Respondiendo: abort")
+                                conexion.sendall("abort".encode())
+                            elif (self._apiCommand == "restaurar_abort"):
+                                print("Respondiendo: abort")
+                                conexion.sendall("abort".encode())
+                            elif (self._apiCommand == "OK"):
+                                break
+                        else:
+                            print(self._apiCommand)
                     else:
-                        print("Error, mensaje corrompido")
+                        print("Error, mensaje no recibido... Notificando ERROR!")
+                        conexion.sendall("ERROR".encode())
             finally:
                 conexion.close()
 
@@ -111,7 +129,8 @@ class Main:
                     #    break
                     counter = 0
                     while((self.connect_Api() == False) and (counter < 10)):
-                        time.sleep(1)
+                        time.sleep(1)                 
+                        self._socketT_Api.close()                      
                         counter += 1
                     if(counter >= 10):
                         print("intentos saturados, intente otro puerto")

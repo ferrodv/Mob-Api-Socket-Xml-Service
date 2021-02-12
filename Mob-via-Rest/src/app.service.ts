@@ -52,27 +52,78 @@ export class AppService {
 
   replicarObjetos(objDto : ObjetoDto): String{
     console.log("[" + this.getTime() + "] Replicar request");
-    var msj: String;
-    if (objDto.accion == "COMMIT")
-      msj = "replicar_commit"
-    else if (objDto.accion == "ABORT")
-      msj = "replicar_abort"
+    const obj: ObjetoDto = new ObjetoDto(objDto);
+    var comando: String;
+    if (obj.accion == "COMMIT")
+      comando = "replicar_commit"
+    else if (obj.accion == "ABORT")
+      comando = "replicar_abort"
     else
-      msj = "replicar"
-
-    return "Exitoso"
+      comando = "replicar_commit"
+    //const objeto = '{ "data" : { "objetos" : ' + JSON.stringify(this.repositorio) + ', "comando" : "' + comando + '"}}'
+    var net = require('net');
+    var client = net.connect({port: 3100},
+        function() {
+            console.log('--------Connected to Coordinador!');
+            console.log("Enviando: " + comando);
+            client.write(comando);
+        });
+    client.on('data', 
+        function(data) {
+            const answer = data.toString()
+            console.log("Respondiendo: " + answer);
+            if (answer == 'commit'){
+              client.write(JSON.stringify(this.repositorio))
+              comando = "COMMITED"
+            }
+            else if (answer == 'abort'){
+              client.write("OK")
+              comando = "ABORTED"
+            }
+            else if (answer == 'ERROR'){
+              client.write("OK")
+              comando = "ERROR"
+            }
+    });
+    
+    return comando
   }
 
   restaurarObetos(objDto : ObjetoDto){
     console.log("[" + this.getTime() + "] Restaurar request");
-    var msj: String;
-    if (objDto.accion == "COMMIT")
-      msj = "restaurar_commit"
-    else if (objDto.accion == "ABORT")
-      msj = "restaurar_abort"
+    const obj: ObjetoDto = new ObjetoDto(objDto);
+    var comando: String;
+    if (obj.accion == "COMMIT")
+      comando = "restaurar_commit"
+    else if (obj.accion == "ABORT")
+      comando = "restaurar_abort"
     else
-      msj = "restaurar"
-
+      comando = "restaurar_commit"
+    
+    var net = require('net');
+    var client = net.connect({port: 3100},
+          function() {
+              console.log('--------Connected to Coordinador!');
+              console.log("Enviando: " + comando);
+              client.write(comando);
+          });
+    client.on('data', 
+          function(data) {
+              const answer = data.toString()
+              console.log("Respondiendo: " + answer);
+              if (answer == 'commit'){
+                client.write(JSON.stringify(this.repositorio))
+                comando = "COMMITED"
+              }
+              else if (answer == 'abort'){
+                client.write("OK")
+                comando = "ABORTED"
+              }
+              else if (answer == 'ERROR'){
+                client.write("OK")
+                comando = "ERROR"
+              }
+    });    
     return "Exitoso"
   }
 
@@ -80,3 +131,5 @@ export class AppService {
 
 
 }
+
+
