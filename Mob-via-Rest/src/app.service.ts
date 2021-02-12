@@ -13,6 +13,11 @@ export class AppService {
     return (log.getFullYear() + "/" + log.getMonth() + "/" + log.getDate() + " " + log.getHours() + ":" + log.getMinutes() + ":" + log.getSeconds());
   }
 
+  getObjetoIndex(nombre: String): Number {
+    const index = this.repositorio.findIndex(objeto => objeto.nombre === nombre);
+    return index;
+  }
+
   wellcome(): string[] {
 
     console.log("[" + this.getTime() + "] Wellcome request");
@@ -27,11 +32,6 @@ export class AppService {
   getStruct(): string {
     console.log("[" + this.getTime() + "] Consulta Estructura request");
     return  JSON.parse('{ "atributo_1" :"nombre", "atributo_2" : "fecha", "atributo_3" : "accion" }');
-  }
-
-  getObjetoIndex(nombre: String): Number {
-    const index = this.repositorio.findIndex(objeto => objeto.nombre === nombre);
-    return index;
   }
 
   create(objDto : ObjetoDto): Objeto {

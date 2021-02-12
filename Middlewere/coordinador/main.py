@@ -10,213 +10,124 @@ import base64
 
 class Main:
 
-    _socketT = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #TCP
-    _socketU = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  #UDP
-    _ipHost = "10.2.126.2"
-    _ipClient = "127.0.0.1"
-    _portH = 19876
-    _portC = 9876
-    _user = "usuario_1"
-    _finished = False
-    _message = ""
-    _lengh = 0
+    _socketT_Sev_1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #TCP
+    _socketT_Sev_2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #TCP
+    _socketT_Api = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #TCP
+    
+    _ipServer_1 = 'localhost'
+    _portServer_1 = 3200
 
-    def Validate_Port(self):  #Validate user inputs
+    _ipServer_2 = 'localhost'
+    _portServer_2 = 3300
+
+    _ipLocal = 'localhost'
+    _portLocal = 3100
+
+    _waiting = True
+    _finished = False
+    _apiCommand = ""
+
+    def Validate_Port(self, num):  #Validate user inputs
         while(True):
             try:
-                entry = input("Ingrese el Puerto: ")
+                entry = input("Ingrese el Puerto del servidor {}: ".format(num))
                 e = int(entry)
-                if (e < 49152 or (e > 65535)):
+                if ((e < 3200) or (e > 3300)):
                     self.cls(1)
-                    print("Opcion invalida!! Ingrese un puerto entre 49152 y 65535")
+                    print("Opcion invalida!! Ingrese un puerto entre 3100 y 3300")
                 else:
                     return e
             except ValueError:
                 self.cls(25)
-                print("Opcion invalida!! Ingrese un puerto(numero) entre 49152 y 65535")
+                print("Opcion invalida!! Ingrese un puerto(numero) entre 3100 y 3300")
 
 
     def cls(self, num):
         print ("\n" * num)
 
     
-    def connectT(self):
+    def connect_XmlServers(self):
         try:
-            self._socketT.connect((self._ipHost,self._portH))
-            print ("Puerto TCP abierto exitosamente")
+            self._socketT_Sev_1.connect((self._ipServer_1, self._portServer_1))
+            self._socketT_Sev_2.connect((self._ipServer_2, self._portServer_2))
+            print ("Puertos TCP de servidores XML abiertos exitosamente")
+            return True
+        except socket.error:
+            print ("Error abriendo puertos TCP de conexion... intentando nuevamente")
+            return False
+    
+
+    def connect_Api(self):
+        server_address = (self._ipLocal, self._portLocal)
+        try:
+            self._socketT_Api.bind(server_address)
+            print ("Puerto TCP escuchando exitosamente")
             return True
         except socket.error:
             print ("Error abriendo puerto TCP de conexion... intentando nuevamente")
             return False
 
 
-    def connectU(self):
-        try:
-            self._socketU.bind((self._ipClient, self._portC))
-            print ("Puerto UDP abierto exitosamente")
-            return True
-        except socket.error:
-            print ("Error abriendo puerto UDP de conexion... intentando nuevamente")
-            return False
-
-
-    def helloiam(self):
-        command = "helloiam {}".format(self._user) 
-        self._socketT.send(command.encode())
-        time.sleep(1)
-        answer = self._socketT.recv(1024).decode()
-        counter = 0
-        while((not answer) and (counter < 20)):
-            time.sleep(1)
-            answer = self._socketT.recv(1024).decode()
-            counter += 1
-        if("ok" not in answer):
-            print("sucedio un error... usuario no aceptado")
-        else:
-            pass
-        return answer
-
-
-    def msglen(self):
-        command = "msglen"
-        self._socketT.send(command.encode())
-        time.sleep(1)
-        answer = self._socketT.recv(1024).decode()
-        counter = 0
-        while((not answer) and (counter < 20)):
-            time.sleep(1)
-            answer = self._socketT.recv(1024).decode()
-            counter += 1
-        if("ok" not in answer):
-            print("sucedio un error... problema sincronizando tamaño del mensaje")
-        else:
-            n = answer.strip('ok')
+    def listen_Api_Port(self):
+        self._socketT_Api.listen(1)
+        while(True):
+            print("Esperando Request")
+            conexion, _ipLocal = self._socketT_Api.accept() # Aceptando conexion
             try:
-                self._lengh = int(n)
-                return answer
-            except ValueError:
-                print("Error decifrando mensaje")
-        return answer
+                print("Recibiendo Request de api")
+                while(True):
+                    self._apiCommand = conexion.recv(16)
+                    if(len(self._apiCommand != 0)):
+                        print("Mensaje recibido: {!r}".format(self._apiCommand))
+                    elif(len(self._apiCommand) == 0):
+                        print("Error, mensaje no recibido...")
+                        conexion.sendall("ERROR")
+                    else:
+                        print("Error, mensaje corrompido")
+            finally:
+                conexion.close()
 
+    def replicar_Objetos(self):
+        pass
 
-    def givememsg(self):
-        command = "givememsg {}".format(self._portC) 
-        self._socketT.send(command.encode())
-        time.sleep(1)
-        answer = self._socketT.recv(1024).decode()
-        counter = 0
-        while((not answer) and (counter < 20)):
-            time.sleep(1)
-            answer = self._socketT.recv(1024).decode()
-            counter += 1
-        if("ok" not in answer):
-            print("sucedio un error... consulta de mensaje denegada")
-        else:
-            pass
-        return answer
-
-
-    def chkmsg(self):
-        check = md5(self._message.encode()) 
-        command = "chkmsg {}".format(check.hexdigest()) 
-        self._socketT.send(command.encode())
-        time.sleep(1)
-        answer = self._socketT.recv(1024).decode()
-        counter = 0
-        while((not answer) and (counter < 20)):
-            time.sleep(1)
-            answer = self._socketT.recv(1024).decode()
-            counter += 1
-        if("ok" not in answer):
-            print("sucedio un error... Mensaje corrompido")
-        else:
-            pass
-        return answer
-
-
-    def bye(self):
-        command = "bye"
-        self._socketT.send(command.encode())
-        time.sleep(1)
-        answer = self._socketT.recv(1024).decode()
-        counter = 0
-        while((not answer) and (counter < 20)):
-            time.sleep(1)
-            answer = self._socketT.recv(1024).decode()
-            counter += 1
-        if("ok" not in answer):
-            print("sucedio un error... no se pudo cerrar sesion")
-        else:
-            pass
-        return answer
-
-
-    def listenPort(self):
-        counter = 0
-        while(counter < 20):
-            counter += 1
-            time.sleep(1)
-        answer,_address = self._socketU.recvfrom(1024) # buffer size is 1024 bytes
-        self._message = (base64.b64decode(answer).decode())
-        if(self._lengh == len(self._message)):
-            print("Mensaje recibido: {}".format(self._message))
-        elif(len(self._message) == 0):
-            print("Error, mensaje no recibido... tiempo de respuesta muy largo")
-        else:
-            print("Error, mensaje corrompido")
-
-
+    def restaurar_Objetos(self):
+        pass
 
     def main(self):
         try:
             while (self._finished == False):
                 while(True):
-                    status = ""
-
-                    self._user = input("Hola bienvendo, ingrese su nombre de usuario: ")
-                    self._portC = self.Validate_Port()
-                    #self._ipHost = input("Ingrese la ip del servidor: ")
-                    self._ipClient = input("Ingrese la ip del usuario dentro del VPN: ")
-
+                    #self._portServer_1 = self.Validate_Port(1)
+                    #self._portServer_2 = self.Validate_Port(2)
+                    #self._ipServer_1 = input("Ingrese la ip del servidor 1 dentro del VPN: ")
+                    #self._ipServer_2 = input("Ingrese la ip del servidor 2 dentro del VPN: ")
+                    # All setted
+                    #counter = 0
+                    #while((self.connect_XmlServers() == False) and (counter < 10)):
+                    #    time.sleep(1)
+                    #    counter += 1
+                    #if(counter >= 10):
+                    #    print("intentos saturados, intente otros puertos")
+                    #    break
                     counter = 0
-                    while((self.connectT() == False) and (counter < 10)):
+                    while((self.connect_Api() == False) and (counter < 10)):
                         time.sleep(1)
                         counter += 1
                     if(counter >= 10):
                         print("intentos saturados, intente otro puerto")
                         break
-
-                    counter = 0
-                    while((self.connectU() == False) and (counter < 10)):
-                        time.sleep(1)
-                        counter += 1
-                    if(counter >= 10):
-                        print("intentos saturados, intente otro puerto")
-                        break
-
-                    t = threading.Thread(target=self.listenPort, name='Listener')
-                    print("Procediendo...")
-                    status = self.helloiam()
-                    if ("ok" in status):
-                        status = self.msglen()                  
-                        t.start()
-                        if ("ok" in status):
-                            status = self.givememsg()
-                            if ("ok" in status):
-                                time.sleep(21)
-                                status = self.chkmsg()
-                                if ("ok" in status):
-                                    status = self.bye()
-                                    if ("ok" in status):
-                                        self._finished = True
-                    self._socketT.close()
-                    self._socketU.close()
-                    break            
+                    #t = threading.Thread(target=self.listen_Api_Port, name='Listener')
+                    #t.start()
+                    self.listen_Api_Port()
+                    self._socketT_Sev_1.close()
+                    self._socketT_Sev_2.close()
+                    self._socketT_Api.close()
             print("Conexion realizada satisfactoriamente")
         except KeyboardInterrupt:
             print("\n Bye...")
-            self._socketT.close()
-            self._socketU.close()
+            self._socketT_Sev_1.close()
+            self._socketT_Sev_2.close()
+            self._socketT_Api.close()
 
 
 
