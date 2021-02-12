@@ -60,7 +60,8 @@ export class AppService {
       comando = "replicar_abort"
     else
       comando = "replicar_commit"
-    //const objeto = '{ "data" : { "objetos" : ' + JSON.stringify(this.repositorio) + ', "comando" : "' + comando + '"}}'
+
+    const objeto = '{ "objetos" : ' + JSON.stringify(this.repositorio) + '}'
     var net = require('net');
     var client = net.connect({port: 3100},
         function() {
@@ -73,7 +74,8 @@ export class AppService {
             const answer = data.toString()
             console.log("Respondiendo: " + answer);
             if (answer == 'commit'){
-              client.write(JSON.stringify(this.repositorio))
+              console.log(objeto)
+              client.write(objeto)
               comando = "COMMITED"
             }
             else if (answer == 'abort'){
@@ -102,28 +104,28 @@ export class AppService {
     
     var net = require('net');
     var client = net.connect({port: 3100},
-          function() {
-              console.log('--------Connected to Coordinador!');
-              console.log("Enviando: " + comando);
-              client.write(comando);
-          });
+        function() {
+            console.log('--------Connected to Coordinador!');
+            console.log("Enviando: " + comando);
+            client.write(comando);
+        });
     client.on('data', 
-          function(data) {
-              const answer = data.toString()
-              console.log("Respondiendo: " + answer);
-              if (answer == 'commit'){
-                client.write(JSON.stringify(this.repositorio))
-                comando = "COMMITED"
-              }
-              else if (answer == 'abort'){
-                client.write("OK")
-                comando = "ABORTED"
-              }
-              else if (answer == 'ERROR'){
-                client.write("OK")
-                comando = "ERROR"
-              }
-    });    
+        function(data) {
+            const answer = data.toString()
+            console.log("Respondiendo: " + answer);
+            if (answer == 'commit'){
+              client.write("OK")
+              comando = "COMMITED"
+            }
+            else if (answer == 'abort'){
+              client.write("OK")
+              comando = "ABORTED"
+            }
+            else if (answer == 'ERROR'){
+              client.write("OK")
+              comando = "ERROR"
+            }
+    });
     return "Exitoso"
   }
 
