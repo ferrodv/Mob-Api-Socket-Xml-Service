@@ -1,0 +1,1 @@
+Coordinator program that will communicate with api and xml server via Sockets

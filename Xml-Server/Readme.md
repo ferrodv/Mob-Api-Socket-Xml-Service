@@ -1,0 +1,1 @@
+Server that will perserve data with xml file and will communicat with coordinator via Sockets
