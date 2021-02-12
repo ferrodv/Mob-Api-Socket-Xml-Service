@@ -7,6 +7,12 @@ import { Objeto } from './objeto';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @Get()
+  async wellcome(@Res() res) {
+    const rutas = this.appService.wellcome();
+    return res.status(HttpStatus.OK).json({rutas})
+  }
+
   @Get("/consultar/data")
   async getData(@Res() res) {
     const data = this.appService.getData();

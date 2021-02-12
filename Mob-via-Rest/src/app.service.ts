@@ -8,6 +8,10 @@ export class AppService {
   
   repositorio : Objeto[] = [];
 
+  wellcome(): string[] {
+    return JSON.parse('{ "get_1" : "/api/consultar/data", "get_2" : "/api/consultar/estructura", "post" : "/api/crear", "delete" : "/api/eliminar/:nombre", "put_1" : "/api/accion/replicar", "put_2" : "/api/accion/restaurar"  }');
+  }
+
   getData(): Objeto[] {
     return this.repositorio;
   }
