@@ -49,17 +49,17 @@ else
   @Put("/accion/replicar")
   async replicate(@Res() res, @Body() objetoDto : ObjetoDto) {
     const status = this.appService.replicarObjetos(objetoDto)
-    if (status != null)
-        return res.status(HttpStatus.OK).json({message: "Registro exitoso", data: status})
+    if (status != "ERROR")
+        return res.status(HttpStatus.OK).json({message: "Replica Exitosa"})
     else 
-        return res.status(HttpStatus.NOT_FOUND).json({message: "Fallo de registro"})   
+        return res.status(HttpStatus.NOT_FOUND).json({message: "Error en replicacion"})   
 }
 
   @Put("/accion/restaurar")
   async restruct(@Res() res, @Body() objetoDto : ObjetoDto) {
     const status = this.appService.restaurarObetos(objetoDto)
     if (status != null)
-        return res.status(HttpStatus.OK).json({message: "Registro exitoso", data: status})
+        return res.status(HttpStatus.OK).json({message: "Registro exitoso"})
     else 
         return res.status(HttpStatus.NOT_FOUND).json({message: "Fallo de registro"})   
   }

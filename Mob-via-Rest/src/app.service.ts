@@ -13,6 +13,11 @@ export class AppService {
     return (log.getFullYear() + "/" + log.getMonth() + "/" + log.getDate() + " " + log.getHours() + ":" + log.getMinutes() + ":" + log.getSeconds());
   }
 
+  getObjetoIndex(nombre: String): Number {
+    const index = this.repositorio.findIndex(objeto => objeto.nombre === nombre);
+    return index;
+  }
+
   wellcome(): string[] {
 
     console.log("[" + this.getTime() + "] Wellcome request");
@@ -27,11 +32,6 @@ export class AppService {
   getStruct(): string {
     console.log("[" + this.getTime() + "] Consulta Estructura request");
     return  JSON.parse('{ "atributo_1" :"nombre", "atributo_2" : "fecha", "atributo_3" : "accion" }');
-  }
-
-  getObjetoIndex(nombre: String): Number {
-    const index = this.repositorio.findIndex(objeto => objeto.nombre === nombre);
-    return index;
   }
 
   create(objDto : ObjetoDto): Objeto {
@@ -52,27 +52,80 @@ export class AppService {
 
   replicarObjetos(objDto : ObjetoDto): String{
     console.log("[" + this.getTime() + "] Replicar request");
-    var msj: String;
-    if (objDto.accion == "COMMIT")
-      msj = "replicar_commit"
-    else if (objDto.accion == "ABORT")
-      msj = "replicar_abort"
+    const obj: ObjetoDto = new ObjetoDto(objDto);
+    var comando: String;
+    if (obj.accion == "COMMIT")
+      comando = "replicar_commit"
+    else if (obj.accion == "ABORT")
+      comando = "replicar_abort"
     else
-      msj = "replicar"
+      comando = "replicar_commit"
 
-    return "Exitoso"
+    const objeto = '{ "objetos" : ' + JSON.stringify(this.repositorio) + '}'
+    var net = require('net');
+    var client = net.connect({port: 3100},
+        function() {
+            console.log('--------Connected to Coordinador!');
+            console.log("Enviando: " + comando);
+            client.write(comando);
+        });
+    client.on('data', 
+        function(data) {
+            const answer = data.toString()
+            console.log("Respondiendo: " + answer);
+            if (answer == 'commit'){
+              console.log(objeto)
+              client.write(objeto)
+              comando = "COMMITED"
+            }
+            else if (answer == 'abort'){
+              client.write("OK")
+              comando = "ABORTED"
+            }
+            else if (answer == 'ERROR'){
+              client.write("OK")
+              comando = "ERROR"
+            }
+    });
+    
+    return comando
   }
 
   restaurarObetos(objDto : ObjetoDto){
     console.log("[" + this.getTime() + "] Restaurar request");
-    var msj: String;
-    if (objDto.accion == "COMMIT")
-      msj = "restaurar_commit"
-    else if (objDto.accion == "ABORT")
-      msj = "restaurar_abort"
+    const obj: ObjetoDto = new ObjetoDto(objDto);
+    var comando: String;
+    if (obj.accion == "COMMIT")
+      comando = "restaurar_commit"
+    else if (obj.accion == "ABORT")
+      comando = "restaurar_abort"
     else
-      msj = "restaurar"
-
+      comando = "restaurar_commit"
+    
+    var net = require('net');
+    var client = net.connect({port: 3100},
+        function() {
+            console.log('--------Connected to Coordinador!');
+            console.log("Enviando: " + comando);
+            client.write(comando);
+        });
+    client.on('data', 
+        function(data) {
+            const answer = data.toString()
+            console.log("Respondiendo: " + answer);
+            if (answer == 'commit'){
+              client.write("OK")
+              comando = "COMMITED"
+            }
+            else if (answer == 'abort'){
+              client.write("OK")
+              comando = "ABORTED"
+            }
+            else if (answer == 'ERROR'){
+              client.write("OK")
+              comando = "ERROR"
+            }
+    });
     return "Exitoso"
   }
 
@@ -80,3 +133,5 @@ export class AppService {
 
 
 }
+
+
