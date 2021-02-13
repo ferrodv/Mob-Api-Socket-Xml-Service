@@ -6,7 +6,7 @@ import { constants } from 'buffer';
 @Injectable()
 export class AppService {
   
-  repositorio : Objeto[] = []
+  repositorio : Objeto[] = [{nombre: "pelota", fecha: "2021/06/04 12:23:12", accion: ""}]
 
   getTime(): string{
     let log = new Date();

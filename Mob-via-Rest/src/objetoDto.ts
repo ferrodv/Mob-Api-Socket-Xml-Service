@@ -7,9 +7,9 @@ export class ObjetoDto {
 	accion: String;
 
 	constructor(json : any,){
-		this.nombre = json.nombre.toLowerCase();
+		this.nombre = json.nombre;
 		this.fecha = json.fecha;
-		this.accion = json.accion.toUpperCase();
+		this.accion = json.accion;
 	}
 
 	public toObjeto() : Objeto {
